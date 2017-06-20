@@ -159,7 +159,7 @@ def save_data(api_request, part):
         logger.warning('%d rows were filtered out' % num_filtered)
 
     output_data = '\n'.join(splitted_text_filtered).encode('utf-8')
-    output_data = output_data.replace(r"\'", "'") # to correct escapes in params
+    output_data = output_data.replace(r"\'", "'").replace(r"\'", "'").replace('""', '"').replace("\"[", "[").replace("]\"", "]") # to correct escapes in params
 
     clickhouse.save_data(api_request.user_request.source,
                          api_request.user_request.fields,
