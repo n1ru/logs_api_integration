@@ -1,11 +1,13 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 import requests
 import urllib
 import json
 import utils
-import StringIO
 import clickhouse
 import datetime
 import logging
+import parsing_params
 
 
 logger = logging.getLogger('logs_api')
@@ -158,6 +160,43 @@ def save_data(api_request, part):
     if num_filtered != 0:
         logger.warning('%d rows were filtered out' % num_filtered)
 
+    #Get additional fields for clickHouse
+    ch_fields_config = utils.get_ch_fields_config()
+    ch_fields = ch_fields_config['{source}_fields'.format(source=api_request.user_request.source)]
+    prefix = 'ym:pv:'
+    if api_request.user_request.source == 'visits':
+        prefix = 'ym:s:'
+
+    #adds additional fields to the end
+    if len(ch_fields) > 0:
+        splitted_text_filtered[0] += '\t' + '\t'.join(ch_fields)
+
+    headers = splitted_text[0].split('\t')
+
+    if prefix + 'params' in headers and prefix + 'URL' in headers:
+        params_index = headers.index(prefix + 'params')
+
+        url_index = headers.index(prefix + 'URL')
+
+        #parse the params
+        i = 1
+        while i < len(splitted_text_filtered):
+            value = splitted_text_filtered[i].split('\t')
+
+            for field in ch_fields:
+                splitted_text_filtered[i] += "\t"
+                params_json = clear_json(value[params_index])
+                url = clear_json(value[url_index])
+                if not is_json(params_json):
+                    continue
+                params = json.loads(params_json)
+                if len(params) > 0:
+                    if type(params) is list:
+                        params = params[0]
+                    data = parsing_params.get_data_from_params(prefix, params, field, url)
+                    splitted_text_filtered[i] += unicode(data)
+            i += 1
+
     output_data = '\n'.join(splitted_text_filtered).encode('utf-8')
     output_data = output_data.replace(r"\'", "'") # to correct escapes in params
 
@@ -166,6 +205,26 @@ def save_data(api_request, part):
                          output_data)
 
     api_request.status = 'saved'
+
+#Removes duplicate characters
+def clear_json(str):
+    return str.encode('utf8') \
+        .replace("'", "") \
+        .replace('""', '"') \
+        .replace('"{', "{") \
+        .replace('}"', '}') \
+        .replace("\ ", "") \
+        .replace('\\"', "\"") \
+        .replace('"[', "[") \
+        .replace(']"', ']')
+
+#checks whether the JSON string is
+def is_json(myjson):
+    try:
+        json.loads(myjson)
+    except ValueError, e:
+        return False
+    return True
 
 def clean_data(api_request):
     '''Cleans generated data on server'''

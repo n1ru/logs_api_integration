@@ -69,9 +69,15 @@ def get_config():
     return config
 
 
-def get_ch_fields_config():
+def get_ch_fields_type_config():
     '''Returns config for ClickHouse columns\'s datatypes'''
     with open('./configs/ch_types.json') as input_file:
+        ch_field_types = json.loads(input_file.read())
+    return ch_field_types
+
+def get_ch_fields_config():
+    '''Returns config for ClickHouse columns\'s datatypes'''
+    with open('./configs/ch_fields.json') as input_file:
         ch_field_types = json.loads(input_file.read())
     return ch_field_types
 

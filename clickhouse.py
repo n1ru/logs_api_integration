@@ -88,7 +88,7 @@ def get_ch_field_name(field_name):
     prefixes = ['ym:s:', 'ym:pv:']
     for prefix in prefixes:
         field_name = field_name.replace(prefix, '')
-    return field_name[0].upper() + field_name[1:]
+    return field_name[0] + field_name[1:]
 
 
 def drop_table(source):
@@ -111,27 +111,33 @@ def create_table(source, fields):
     table_name = get_source_table_name(source)
     if source == 'hits':
         if ('ym:pv:date' in fields) and ('ym:pv:clientID' in fields):
-            engine = 'MergeTree(Date, intHash32(ClientID), (Date, intHash32(ClientID)), 8192)'
+            engine = 'MergeTree(date, intHash32(clientID), (date, intHash32(clientID)), 8192)'
         else:
             engine = 'Log'
 
     if source == 'visits':
         if ('ym:s:date' in fields) and ('ym:s:clientID' in fields):
-            engine = 'MergeTree(Date, intHash32(ClientID), (Date, intHash32(ClientID)), 8192)'
+            engine = 'MergeTree(date, intHash32(clientID), (date, intHash32(clientID)), 8192)'
         else:
             engine = 'Log'
 
-    ch_field_types = utils.get_ch_fields_config()
-    ch_fields = map(get_ch_field_name, fields)
-    
-    for i in range(len(fields)):
-        field_statements.append(field_tmpl.format(name= ch_fields[i],
+    ch_field_types = utils.get_ch_fields_type_config()
+    ch_fields_config = utils.get_ch_fields_config()
+    ch_fields = ch_fields_config['{source}_fields'.format(source=source)]
+
+    for item in ch_fields:
+        fields += (item,)
+
+    ch_fields_map = map(get_ch_field_name, fields)
+
+    for i in range(len(ch_fields_map)):
+        field_statements.append(field_tmpl.format(name= ch_fields_map[i],
             type=ch_field_types[fields[i]]))
     
-    field_statements = sorted(field_statements)
+    # field_statements = sorted(field_statements)
     query = tmpl.format(table_name=table_name,
                         engine=engine,
-                        fields=',\n'.join(sorted(field_statements)))
+                        fields=',\n'.join(field_statements))
 
     get_clickhouse_data(query)
 

@@ -1,0 +1,39 @@
+{
+	"visits_fields": [
+        "ym:s:region",
+        "ym:s:cityName",
+        "ym:s:microdistrict",
+        "ym:s:district",
+        "ym:s:street",
+        "ym:s:from",
+        "ym:s:fromBlock"
+    ],
+
+	"hits_fields": [
+        "ym:pv:app",
+        "ym:pv:hitType",
+        "ym:pv:offerID",
+        "ym:pv:region",
+        "ym:pv:cityName",
+        "ym:pv:microdistrict",
+        "ym:pv:district",
+        "ym:pv:street",
+        "ym:pv:page",
+        "ym:pv:from",
+        "ym:pv:fromBlock",
+        "ym:pv:rubric",
+        "ym:pv:realtyType",
+        "ym:pv:dealType",
+        "ym:pv:special",
+        "ym:pv:premium",
+        "ym:pv:top",
+        "ym:pv:highlight",
+        "ym:pv:autoraiseX2",
+        "ym:pv:autoraiseX4",
+        "ym:pv:autoraiseX8",
+        "ym:pv:price",
+        "ym:pv:numberRooms",
+        "ym:pv:ownerOffer",
+        "ym:pv:phone"
+	]
+}
